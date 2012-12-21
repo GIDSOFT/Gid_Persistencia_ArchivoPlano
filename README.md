@@ -1,7 +1,14 @@
 ﻿Gid_Persistencia_ArchivoPlano
 =============================
 
-Este software permite registrar usuarios para un centro médico almacenando su información en un archivo de texto plano (txt, Csv) y enlistándolos en una tabla. Además el software permite consultar por el numero de documento de identidad si el usuario ya se encuentra registrado.
+Este software tiene como función  principal registrar usuarios para un centro médico.
+
+Funciones secundarias:
+
+-Almacena la información en un archivo de texto plano (txt, Csv).
+-Enlista los usuarios en una tabla localizada en la misma interface.
+-El software permite consultar por el número de documento de identidad si el usuario ya se encuentra registrado.
+-El software permite generar un reporte con los datos de los usuarios ingresados.
 
 ![My image](https://dl.dropbox.com/u/66191347/readmePic.jpg "Image 1")
  
