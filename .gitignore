@@ -1,6 +1,8 @@
-*.class
+$ cat .gitignore
 
-# Package Files #
-*.jar
-*.war
-*.ear
+#Ignorar Carpetas Locales
+GID_AlmacenamientoPersistente/nbproject/*
+GID_AlmacenamientoPersistente/build/*
+GID_AlmacenamientoPersistente/dist/*
+GID_AlmacenamientoPersistente/build.xml
+GID_AlmacenamientoPersistente/manifest.mf
