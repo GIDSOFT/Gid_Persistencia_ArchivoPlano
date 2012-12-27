@@ -54,6 +54,7 @@ public class Usuarios extends javax.swing.JFrame {
     boolean foundedOrNot;
     boolean validation;
     boolean error;
+    boolean report;
     String city;
     String epschoosed;
     String nameResult;
@@ -88,7 +89,8 @@ public class Usuarios extends javax.swing.JFrame {
         eps = new ArrayList();
         user = new ArrayList();
         foundedOrNot = false;
-        validation = true; //No pasa nada, NO existe una id igual.
+        report = true;
+        validation = false; //No pasa nada, NO existe una id igual.
         sex = "";
         Idcbo();
         cities();
@@ -106,9 +108,17 @@ public class Usuarios extends javax.swing.JFrame {
         lineFound = null;
         info = null;
         fileLf = null;
-        fillTable();
+        File file;
+        String separator1 = System.getProperty("file.separator");
+        file = new File(System.getProperty("user.dir").concat(separator1).concat("file.csv"));
+        if (!(file.exists() == true)) {
+            System.out.println("se creo uno nuevo porque el archivo no existe.");
+            report = false;
+        } else {
+            System.err.println("no se pudo crear, el archivo ya existe.");
+            fillTable();
+        }
         error = false;
-
     }
 
     /**
@@ -262,7 +272,7 @@ public class Usuarios extends javax.swing.JFrame {
                 }
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Error en el método IdentificationValidator tipo ::" + "\n" + e + "\n" + e.getStackTrace());
+//            JOptionPane.showMessageDialog(null, "Error en el método IdentificationValidator tipo ::" + "\n" + e + "\n" + e.getStackTrace());
         }
 
     }
@@ -293,13 +303,13 @@ public class Usuarios extends javax.swing.JFrame {
                 idResult = info[1];
                 typeIdResult = info[0];
                 dateResult = info[4];
-                cityResult=info[7];
-                sexResult=info[6];
-                epsResult=info[8];
+                cityResult = info[7];
+                sexResult = info[6];
+                epsResult = info[8];
                 String encontrado = info[1];
                 nameResult = info[2];
                 lastNameResult = info[3];
-             
+
                 if (userSearch.equals(encontrado)) {
                     foundedOrNot = true;
                     Toolkit.getDefaultToolkit().beep();
@@ -327,14 +337,13 @@ public class Usuarios extends javax.swing.JFrame {
             DatePicker.setDate(born);
             cboTypeId.setSelectedItem(typeIdResult);
             cboCity.setSelectedItem(cityResult);
-            cboEps.setSelectedItem(epsResult); 
-            if(sexResult.equals("Masculino"))
-                {
-                  rMale.setSelected(true);  
-                }else{
-                  rFemale.setSelected(true); 
-               }
-               
+            cboEps.setSelectedItem(epsResult);
+            if (sexResult.equals("Masculino")) {
+                rMale.setSelected(true);
+            } else {
+                rFemale.setSelected(true);
+            }
+
 
 
         } else if (foundedOrNot == false) {
@@ -385,37 +394,30 @@ public class Usuarios extends javax.swing.JFrame {
 
     }
 
-    private JRCsvDataSource getDataSource() throws JRException, URISyntaxException {
-        String[] columnNames = new String[]{"Tipo de identificación", "Identificación", "Nombre", "Apellidos", "Fecha de nacimiento", "Edad", "Sexo", "Ciudad", "Eps"};
-        File fi = null;
-        String separatorFile = System.getProperty("file.separator");
-        fi = new File(System.getProperty("user.dir").concat(separatorFile).concat("file.csv"));
-        String filePath = fi.getAbsolutePath().toString();
-        JRCsvDataSource ds = new JRCsvDataSource(filePath);
-        ds.setRecordDelimiter("\r\n");
-        ds.setFieldDelimiter(';');
-        ds.setColumnNames(columnNames);
-        return ds;
-    }
-
-    private void report() throws JRException {
-        File f = null;
-        try {
-            String separator = System.getProperty("file.separator");
-            f = new File(System.getProperty("user.dir").concat(separator).concat("CsvReport.jasper"));
-            System.out.println("ruta del archivo CSV>>>>" + f);
-            String filePath = f.getAbsolutePath().toString();
-            System.out.println("" + filePath);
-            JasperReport reporte = (JasperReport) JRLoader.loadObjectFromFile(filePath);
-            JasperPrint jasperPrint = JasperFillManager.fillReport(reporte, null, getDataSource());
-            JasperViewer view = new JasperViewer(jasperPrint);
-            view.setTitle("Reporte Informativo");
-            view.setVisible(true);
-        } catch (Exception exec) {
-            System.out.println("" + exec);
-        }
-    }
-
+    /**
+     * private JRCsvDataSource getDataSource() throws JRException,
+     * URISyntaxException { String[] columnNames = new String[]{"Tipo de
+     * identificación", "Identificación", "Nombre", "Apellidos", "Fecha de
+     * nacimiento", "Edad", "Sexo", "Ciudad", "Eps"}; File fi = null; String
+     * separatorFile = System.getProperty("file.separator"); fi = new
+     * File(System.getProperty("user.dir").concat(separatorFile).concat("file.csv"));
+     * String filePath = fi.getAbsolutePath().toString(); JRCsvDataSource ds =
+     * new JRCsvDataSource(filePath); ds.setRecordDelimiter("\r\n");
+     * ds.setFieldDelimiter(';'); ds.setColumnNames(columnNames); return ds; }
+     *
+     * private void report() throws JRException { File f = null; try { String
+     * separator = System.getProperty("file.separator"); f = new
+     * File(System.getProperty("user.dir").concat(separator).concat("CsvReport.jasper"));
+     * System.out.println("ruta del archivo CSV>>>>" + f); String filePath =
+     * f.getAbsolutePath().toString(); System.out.println("" + filePath);
+     * JasperReport reporte = (JasperReport)
+     * JRLoader.loadObjectFromFile(filePath); JasperPrint jasperPrint =
+     * JasperFillManager.fillReport(reporte, null, getDataSource());
+     * JasperViewer view = new JasperViewer(jasperPrint, false);
+     * view.setTitle("Reporte Informativo"); view.setVisible(true);
+     * setDefaultCloseOperation(DISPOSE_ON_CLOSE); } catch (Exception exec) {
+     * System.out.println("" + exec); } }
+     */
     public boolean ValidateEmptyFields() {
         String id = txtId.getText();
         String name = txtName.getText();
@@ -435,20 +437,19 @@ public class Usuarios extends javax.swing.JFrame {
         }
         return error;
     }
-    
-    
-    private void emptyGui(){
-         cboTypeId.setSelectedItem("--Seleccione--");
-            cboCity.setSelectedItem("--Seleccione un municipio--");
-            cboEps.setSelectedItem("--Seleccione--");
-            DatePicker.setDate(new Date());
-            BotonGroup.clearSelection();
-            txtId.setText("");
-            txtName.setText("");
-            txtLastName.setText("");
-            txtSearchUser.setText("");
-        
-        
+
+    private void emptyGui() {
+        cboTypeId.setSelectedItem("--Seleccione--");
+        cboCity.setSelectedItem("--Seleccione un municipio--");
+        cboEps.setSelectedItem("--Seleccione--");
+        DatePicker.setDate(new Date());
+        BotonGroup.clearSelection();
+        txtId.setText("");
+        txtName.setText("");
+        txtLastName.setText("");
+        txtSearchUser.setText("");
+
+
     }
 
     @SuppressWarnings("unchecked")
@@ -484,6 +485,7 @@ public class Usuarios extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         lblAviso = new org.jdesktop.swingx.JXLabel();
+        jButton3 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -627,6 +629,14 @@ public class Usuarios extends javax.swing.JFrame {
         lblAviso.setText("Found/notFound");
         lblAviso.setFont(new java.awt.Font("Verdana", 1, 12)); // NOI18N
 
+        jButton3.setIcon(new javax.swing.ImageIcon("C:\\Documents and Settings\\Administrador\\Escritorio\\iconos\\Onebit\\02\\PNG\\onebit_08_32 px.png")); // NOI18N
+        jButton3.setText("Limpiar formulario");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -697,9 +707,15 @@ public class Usuarios extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel1)
                             .addComponent(jLabel10)
-                            .addComponent(btnSaveUser))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(btnSaveUser)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jButton3)))
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
+
+        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btnSaveUser, jButton3});
+
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
@@ -734,7 +750,9 @@ public class Usuarios extends javax.swing.JFrame {
                         .addComponent(jLabel6)
                         .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(21, 21, 21)
-                .addComponent(btnSaveUser)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnSaveUser)
+                    .addComponent(jButton3))
                 .addGap(18, 18, 18)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -752,6 +770,8 @@ public class Usuarios extends javax.swing.JFrame {
                 .addComponent(jButton1)
                 .addContainerGap())
         );
+
+        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {btnSaveUser, jButton3});
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -774,6 +794,7 @@ public class Usuarios extends javax.swing.JFrame {
                     fillTable();
                     user.add(name);
                     validation = true;
+                    report=true;
                 } catch (Exception em) {
                     JOptionPane.showMessageDialog(null, "Error en el boton que guarda el usuario ::" + "\n" + em);
                 }
@@ -781,7 +802,7 @@ public class Usuarios extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "El numero de identificación ya existe.");
                 validation = true;
             }
-           emptyGui();
+            emptyGui();
         } else {
             Toolkit.getDefaultToolkit().beep();
             JOptionPane.showMessageDialog(null, "ERROR!! \n Por favor diligencie completamente el formulario");
@@ -797,11 +818,12 @@ public class Usuarios extends javax.swing.JFrame {
     }//GEN-LAST:event_DatePickerActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        try {
-            report();
-        } catch (Exception e) {
-            System.out.println("" + e);
+        if (report == true) {
+            ThreadReport report = new ThreadReport();
+            report.start();
+        }else{JOptionPane.showMessageDialog(null, "No se puede generar un reporte\nLa base de datos está vacía.");
         }
+
 // TODO add your handling code here:
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -836,6 +858,10 @@ public class Usuarios extends javax.swing.JFrame {
     private void rMaleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rMaleActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_rMaleActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        emptyGui();        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton3ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -874,6 +900,7 @@ public class Usuarios extends javax.swing.JFrame {
     private javax.swing.JComboBox cboTypeId;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
