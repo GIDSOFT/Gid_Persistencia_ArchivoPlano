@@ -22,15 +22,8 @@ import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRCsvDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
 import net.sf.jasperreports.view.JasperViewer;
-import org.apache.log4j.BasicConfigurator;
-import com.nilo.plaf.nimrod.NimRODLookAndFeel;
-import com.nilo.plaf.nimrod.NimRODTheme;
-import java.net.MalformedURLException;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import com.sun.jndi.toolkit.ctx.Continuation;
 import java.text.ParseException;
-import sun.util.locale.StringTokenIterator;
+import java.util.ResourceBundle;
 
 /**
  *
@@ -38,6 +31,7 @@ import sun.util.locale.StringTokenIterator;
  */
 public class Usuarios extends javax.swing.JFrame {
 
+    String language;
     File fileLf;
     ArrayList idcbo;
     ArrayList cities;
@@ -54,7 +48,6 @@ public class Usuarios extends javax.swing.JFrame {
     boolean foundedOrNot;
     boolean validation;
     boolean error;
-    boolean report;
     String city;
     String epschoosed;
     String nameResult;
@@ -81,6 +74,7 @@ public class Usuarios extends javax.swing.JFrame {
     public Usuarios() {
         super("Registro de Usuarios");
         this.setIconImage(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("resources/icono.png")));
+        language = configLanguage();
         initComponents();
         this.setResizable(false);
         this.setLocationRelativeTo(null);
@@ -89,8 +83,7 @@ public class Usuarios extends javax.swing.JFrame {
         eps = new ArrayList();
         user = new ArrayList();
         foundedOrNot = false;
-        report = true;
-        validation = false; //No pasa nada, NO existe una id igual.
+        validation = true; //No pasa nada, NO existe una id igual.
         sex = "";
         Idcbo();
         cities();
@@ -108,17 +101,29 @@ public class Usuarios extends javax.swing.JFrame {
         lineFound = null;
         info = null;
         fileLf = null;
-        File file;
-        String separator1 = System.getProperty("file.separator");
-        file = new File(System.getProperty("user.dir").concat(separator1).concat("file.csv"));
-        if (!(file.exists() == true)) {
-            System.out.println("se creo uno nuevo porque el archivo no existe.");
-            report = false;
-        } else {
-            System.err.println("no se pudo crear, el archivo ya existe.");
-            fillTable();
-        }
+        fillTable();
         error = false;
+        configLanguage();
+    }
+
+    private String configLanguage() {
+        String propertyLanguaje = "ES";
+        ResourceBundle configurator;
+        configurator = ResourceBundle.getBundle("config");
+
+        try {
+            switch (configurator.getString("Language")) {
+                case "ES":
+                    propertyLanguaje = "ES";
+                    break;
+                case "US":
+                    propertyLanguaje = "US";
+                    break;
+            }
+        } catch (ExceptionInInitializerError e) {
+            Logger.getLogger(Usuarios.class.getName()).log(Level.SEVERE, "No se pudo encontrar Archivo de Propiedades", e);
+        }
+        return propertyLanguaje;
     }
 
     /**
@@ -272,7 +277,7 @@ public class Usuarios extends javax.swing.JFrame {
                 }
             }
         } catch (Exception e) {
-//            JOptionPane.showMessageDialog(null, "Error en el método IdentificationValidator tipo ::" + "\n" + e + "\n" + e.getStackTrace());
+            JOptionPane.showMessageDialog(null, "Error en el método IdentificationValidator tipo ::" + "\n" + e + "\n" + e.getStackTrace());
         }
 
     }
@@ -394,30 +399,37 @@ public class Usuarios extends javax.swing.JFrame {
 
     }
 
-    /**
-     * private JRCsvDataSource getDataSource() throws JRException,
-     * URISyntaxException { String[] columnNames = new String[]{"Tipo de
-     * identificación", "Identificación", "Nombre", "Apellidos", "Fecha de
-     * nacimiento", "Edad", "Sexo", "Ciudad", "Eps"}; File fi = null; String
-     * separatorFile = System.getProperty("file.separator"); fi = new
-     * File(System.getProperty("user.dir").concat(separatorFile).concat("file.csv"));
-     * String filePath = fi.getAbsolutePath().toString(); JRCsvDataSource ds =
-     * new JRCsvDataSource(filePath); ds.setRecordDelimiter("\r\n");
-     * ds.setFieldDelimiter(';'); ds.setColumnNames(columnNames); return ds; }
-     *
-     * private void report() throws JRException { File f = null; try { String
-     * separator = System.getProperty("file.separator"); f = new
-     * File(System.getProperty("user.dir").concat(separator).concat("CsvReport.jasper"));
-     * System.out.println("ruta del archivo CSV>>>>" + f); String filePath =
-     * f.getAbsolutePath().toString(); System.out.println("" + filePath);
-     * JasperReport reporte = (JasperReport)
-     * JRLoader.loadObjectFromFile(filePath); JasperPrint jasperPrint =
-     * JasperFillManager.fillReport(reporte, null, getDataSource());
-     * JasperViewer view = new JasperViewer(jasperPrint, false);
-     * view.setTitle("Reporte Informativo"); view.setVisible(true);
-     * setDefaultCloseOperation(DISPOSE_ON_CLOSE); } catch (Exception exec) {
-     * System.out.println("" + exec); } }
-     */
+    private JRCsvDataSource getDataSource() throws JRException, URISyntaxException {
+        String[] columnNames = new String[]{"Tipo de identificación", "Identificación", "Nombre", "Apellidos", "Fecha de nacimiento", "Edad", "Sexo", "Ciudad", "Eps"};
+        File fi = null;
+        String separatorFile = System.getProperty("file.separator");
+        fi = new File(System.getProperty("user.dir").concat(separatorFile).concat("file.csv"));
+        String filePath = fi.getAbsolutePath().toString();
+        JRCsvDataSource ds = new JRCsvDataSource(filePath);
+        ds.setRecordDelimiter("\r\n");
+        ds.setFieldDelimiter(';');
+        ds.setColumnNames(columnNames);
+        return ds;
+    }
+
+    private void report() throws JRException {
+        File f = null;
+        try {
+            String separator = System.getProperty("file.separator");
+            f = new File(System.getProperty("user.dir").concat(separator).concat("CsvReport.jasper"));
+            System.out.println("ruta del archivo jasper>>>>" + f);
+            String filePath = f.getAbsolutePath().toString();
+            System.out.println("" + filePath);
+            JasperReport reporte = (JasperReport) JRLoader.loadObjectFromFile(filePath);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(reporte, null, getDataSource());
+            JasperViewer view = new JasperViewer(jasperPrint);
+            view.setTitle("Reporte Informativo");
+            view.setVisible(true);
+        } catch (Exception exec) {
+            System.out.println("" + exec);
+        }
+    }
+
     public boolean ValidateEmptyFields() {
         String id = txtId.getText();
         String name = txtName.getText();
@@ -490,7 +502,8 @@ public class Usuarios extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jLabel1.setFont(new java.awt.Font("Serif", 1, 14)); // NOI18N
-        jLabel1.setText("INGRESAR USUARIO");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("packato.ES"); // NOI18N
+        jLabel1.setText(bundle.getString("Super_registroUsuarios_ES")); // NOI18N
 
         jLabel2.setText("Tipo de identificación");
 
@@ -508,7 +521,6 @@ public class Usuarios extends javax.swing.JFrame {
 
         BotonGroup.add(rMale);
         rMale.setText("Masculino");
-        rMale.setToolTipText("Seleccione uno");
         rMale.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 rMaleActionPerformed(evt);
@@ -536,7 +548,7 @@ public class Usuarios extends javax.swing.JFrame {
             }
         });
 
-        btnSaveUser.setIcon(new javax.swing.ImageIcon("C:\\Documents and Settings\\Administrador\\Escritorio\\iconos\\Onebit\\01\\PNG\\onebit_11-20px.png")); // NOI18N
+        btnSaveUser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/save.png"))); // NOI18N
         btnSaveUser.setText("Guardar usuario");
         btnSaveUser.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -603,13 +615,18 @@ public class Usuarios extends javax.swing.JFrame {
             }
         });
 
+        txtId.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtIdActionPerformed(evt);
+            }
+        });
         txtId.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 txtIdKeyTyped(evt);
             }
         });
 
-        jButton1.setIcon(new javax.swing.ImageIcon("C:\\Documents and Settings\\Administrador\\Escritorio\\iconos\\Onebit\\01\\PNG\\onebit_39-20px.png")); // NOI18N
+        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/report.png"))); // NOI18N
         jButton1.setText("Reporte de usuarios");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -617,7 +634,7 @@ public class Usuarios extends javax.swing.JFrame {
             }
         });
 
-        jButton2.setIcon(new javax.swing.ImageIcon("C:\\Documents and Settings\\Administrador\\Escritorio\\iconos\\Onebit\\01\\PNG\\onebit_02-20px.png")); // NOI18N
+        jButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/search.png"))); // NOI18N
         jButton2.setText("buscar");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -629,7 +646,7 @@ public class Usuarios extends javax.swing.JFrame {
         lblAviso.setText("Found/notFound");
         lblAviso.setFont(new java.awt.Font("Verdana", 1, 12)); // NOI18N
 
-        jButton3.setIcon(new javax.swing.ImageIcon("C:\\Documents and Settings\\Administrador\\Escritorio\\iconos\\Onebit\\02\\PNG\\onebit_08_32 px.png")); // NOI18N
+        jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/erase.png"))); // NOI18N
         jButton3.setText("Limpiar formulario");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -662,34 +679,40 @@ public class Usuarios extends javax.swing.JFrame {
                                     .addComponent(cboTypeId, 0, 118, Short.MAX_VALUE)
                                     .addComponent(cboCity, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(DatePicker, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGap(18, 18, 18)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                        .addGroup(layout.createSequentialGroup()
-                                            .addComponent(jLabel6)
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                            .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addGap(4, 4, 4))
-                                        .addGroup(layout.createSequentialGroup()
-                                            .addGap(22, 22, 22)
-                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                                .addComponent(jLabel8)
-                                                .addComponent(jLabel7))
-                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                            .addComponent(txtLastName)))
                                     .addGroup(layout.createSequentialGroup()
-                                        .addGap(46, 46, 46)
+                                        .addGap(64, 64, 64)
                                         .addComponent(jLabel9)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(cboEps, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(18, 18, 18)
                                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                                    .addGap(22, 22, 22)
+                                                    .addComponent(jLabel7)
+                                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                    .addComponent(txtLastName))
+                                                .addGroup(layout.createSequentialGroup()
+                                                    .addComponent(jLabel6)
+                                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                                    .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)))
                                             .addGroup(layout.createSequentialGroup()
+                                                .addGap(38, 38, 38)
+                                                .addComponent(jLabel8)
+                                                .addGap(18, 18, 18)
                                                 .addComponent(rMale)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                                .addComponent(rFemale))
-                                            .addComponent(cboEps, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                                .addComponent(rFemale)))))
                                 .addGap(0, 0, Short.MAX_VALUE))
                             .addComponent(jSeparator1))
                         .addGap(70, 70, 70))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel1)
+                            .addComponent(jLabel10))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jButton1)
@@ -701,21 +724,13 @@ public class Usuarios extends javax.swing.JFrame {
                                         .addComponent(txtSearchUser, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(jButton2))
-                                    .addComponent(lblAviso, javax.swing.GroupLayout.PREFERRED_SIZE, 603, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel10)
+                                    .addComponent(lblAviso, javax.swing.GroupLayout.PREFERRED_SIZE, 603, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(btnSaveUser)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButton3)))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
-
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {btnSaveUser, jButton3});
-
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
@@ -750,9 +765,9 @@ public class Usuarios extends javax.swing.JFrame {
                         .addComponent(jLabel6)
                         .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(21, 21, 21)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnSaveUser)
-                    .addComponent(jButton3))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnSaveUser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(18, 18, 18)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -764,7 +779,7 @@ public class Usuarios extends javax.swing.JFrame {
                     .addComponent(jButton2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lblAviso, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 30, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 18, Short.MAX_VALUE)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 129, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jButton1)
@@ -794,7 +809,6 @@ public class Usuarios extends javax.swing.JFrame {
                     fillTable();
                     user.add(name);
                     validation = true;
-                    report=true;
                 } catch (Exception em) {
                     JOptionPane.showMessageDialog(null, "Error en el boton que guarda el usuario ::" + "\n" + em);
                 }
@@ -818,12 +832,11 @@ public class Usuarios extends javax.swing.JFrame {
     }//GEN-LAST:event_DatePickerActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        if (report == true) {
-            ThreadReport report = new ThreadReport();
-            report.start();
-        }else{JOptionPane.showMessageDialog(null, "No se puede generar un reporte\nLa base de datos está vacía.");
+        try {
+            report();
+        } catch (Exception e) {
+            System.out.println("" + e);
         }
-
 // TODO add your handling code here:
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -859,38 +872,13 @@ public class Usuarios extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_rMaleActionPerformed
 
+    private void txtIdActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtIdActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtIdActionPerformed
+
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         emptyGui();        // TODO add your handling code here:
     }//GEN-LAST:event_jButton3ActionPerformed
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) throws MalformedURLException {
-        BasicConfigurator.configure();
-
-        try {
-            UIManager.setLookAndFeel(new NimRODLookAndFeel());
-
-
-
-            NimRODLookAndFeel nf = new NimRODLookAndFeel();
-            NimRODTheme nt = new NimRODTheme("C:/Documents and Settings/Administrador/Mis documentos/NetBeansProjects/GID_AlmacenamientoPersistente/src/resources/OkyDarkTheme.theme");
-            nf.setCurrentTheme(nt);
-            UIManager.setLookAndFeel(nf);
-        } catch (UnsupportedLookAndFeelException ex) {
-            System.err.println("Error de " + ex);
-        }
-
-        //</editor-fold>
-
-
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Usuarios().setVisible(true);
-            }
-        });
-    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup BotonGroup;
     private org.jdesktop.swingx.JXDatePicker DatePicker;
